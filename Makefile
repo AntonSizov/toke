@@ -19,43 +19,8 @@
 #   Contributor(s): ______________________________________.
 #
 
-SOURCE_DIR:=src
-C_SOURCE_DIR:=c_src
-EBIN_DIR:=ebin
-PRIV_DIR:=priv
-ERL_SOURCE:=$(wildcard $(SOURCE_DIR)/*.erl)
-BEAM_TARGETS:=$(patsubst $(SOURCE_DIR)/%.erl, $(EBIN_DIR)/%.beam, $(ERL_SOURCE))
-LIBRARY:=$(PRIV_DIR)/libtoke.so
-C_SOURCE:=$(wildcard $(C_SOURCE_DIR)/*.c)
-C_HEADERS:=$(wildcard $(C_SOURCE_DIR)/*.h)
-TARGETS:=$(BEAM_TARGETS) $(LIBRARY)
-
-ERLC ?= erlc
-ERL ?= erl
-ERLC_OPTS:=-o $(EBIN_DIR) -Wall -v
-ERL_OPTS:=-pa $(EBIN_DIR) +K true +A30
-
-CC ?= gcc
-CFLAGS ?=
-CC_OPTS:=-Wall -pedantic -std=c99 -O2 -shared -fpic -I $(SOURCE_DIR) -ltokyocabinet $(CFLAGS)
-
-all: $(EBIN_DIR) $(PRIV_DIR) $(TARGETS)
-
-$(EBIN_DIR)/%.beam: $(SOURCE_DIR)/%.erl
-	$(ERLC) $(ERLC_OPTS) $<
-
-$(LIBRARY): $(C_SOURCE) $(C_HEADERS)
-	$(CC) $(CC_OPTS) -o $@ $<
-
-$(EBIN_DIR):
-	mkdir -p $(EBIN_DIR)
-
-$(PRIV_DIR):
-	mkdir -p $(PRIV_DIR)
+compile:
+	./rebar compile
 
 clean:
-	rm -f $(EBIN_DIR)/*.beam
-	rm -f $(LIBRARY)
-
-run: all
-	$(ERL) $(ERL_OPTS)
+	./rebar clean

@@ -41,7 +41,8 @@ enum _CommandType {
   TOKE_INSERT_ASYNC    = 11,
   TOKE_DELETE          = 12,
   TOKE_GET             = 13,
-  TOKE_GET_ALL         = 14
+  TOKE_GET_ALL         = 14,
+  TOKE_ADD_INT         = 15
 };
 typedef enum _CommandType CommandType;
 

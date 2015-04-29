@@ -1,0 +1,7 @@
+{application, toke, [
+    {description, "Toke tokyo cabinet driver"},
+    {vsn, "pmm_1.0.0"},
+    {registered, []},
+    {applications, [kernel, stdlib]},
+    {env, []}
+]}.

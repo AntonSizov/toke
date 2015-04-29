@@ -1,0 +1,3 @@
+priv
+c_src/*.o
+ebin

@@ -26,7 +26,7 @@
 
 -export([new/1, delete/1, tune/5, set_cache/2, set_xm_size/2, set_df_unit/2,
          open/3, close/1, insert/3, insert_new/3, insert_concat/3,
-         insert_async/3, delete/2, get/2, fold/3, stop/1]).
+         insert_async/3, delete/2, get/2, add_int/3, fold/3, stop/1]).
 
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, code_change/3,
 	 terminate/2]).
@@ -39,7 +39,7 @@
 %% the database, you will get an invalid state error from Tokyo
 %% Cabinet rather than something more meaningful.
 
--define(LIBNAME, "libtoke").
+-define(LIBNAME, "toke_drv").
 
 -define(TOKE_NEW,           0). %% KEEP IN SYNC WITH TOKE.H
 -define(TOKE_DEL,           1).
@@ -56,6 +56,7 @@
 -define(TOKE_DELETE,        12).
 -define(TOKE_GET,           13).
 -define(TOKE_GET_ALL,       14).
+-define(TOKE_ADD_INT,       15).
 
 %% KEEP IN SYNC WITH TOKE.H
 -define(TUNE_KEYS,          [large, deflate, bzip, tcbs, excodec]).
@@ -128,6 +129,10 @@ delete(Pid, Key) when is_binary(Key) ->
 get(Pid, Key) when is_binary(Key) ->
     gen_server:call(Pid, {get, Key}, infinity).
 
+%% Add an integer to a record.
+add_int(Pid, Key, Value) when is_binary(Key) andalso is_integer(Value) ->
+    gen_server:call(Pid, {add_int, Key, Value}, infinity).
+
 %% Fold over every value in the db.
 fold(Fun, Init, Pid) ->
     gen_server:call(Pid, {fold, Fun, Init}, infinity).
@@ -142,9 +147,7 @@ stop(Pid) ->
 
 init([]) ->
     erl_ddll:start(),
-    {file, Path} = code:is_loaded(?MODULE),
-    Dir = filename:join(filename:dirname(Path), "../priv"),
-    ok = erl_ddll:load_driver(Dir, ?LIBNAME),
+    ok = erl_ddll:load_driver(code:priv_dir(toke), ?LIBNAME),
     Port = open_port({spawn_driver, ?LIBNAME}, [binary, stream]),
     {ok, Port}.
 
@@ -211,6 +214,12 @@ handle_call({delete, Key}, _From, Port) ->
 handle_call({get, Key}, _From, Port) ->
     KeySize = size(Key),
     port_command(Port, <<?TOKE_GET/native, KeySize:64/native, Key/binary>>),
+    simple_reply(Port);
+
+handle_call({add_int, Key, Value}, _From, Port) ->
+    KeySize = size(Key),
+    port_command(Port, <<?TOKE_ADD_INT/native, KeySize:64/native,
+                        Key/binary, Value:32/native>>),
     simple_reply(Port);
 
 handle_call({fold, Fun, Init}, _From, Port) ->
